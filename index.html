@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ideal gas simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <h1>Ideal gas simulator v0.1</h1>
+</head>
+<body>
+    <div id="navigation-box">
+        <button id="addbutton" class="pure-material-button-contained">Add atom</button>
+
+        <input type="checkbox" id="id-checkbox" name="set-name" class="switch-input">
+        <label for="id-checkbox" class="switch-label">Gravity<span class="toggle--on">On</span>
+            <span class="toggle--off">Off</span></label>
+    </div>
+
+    <div id="scene3d">
+        <label id="particles-counter">Number of particles: 1</label>
+    </div>
+
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/Vector3D.js"></script>
+    <script src="js/scene.js"></script>
+</body>
+</html>
