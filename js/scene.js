@@ -25,6 +25,13 @@ var atom = newAtom(0.5, 1, tempVel, tempAcc);
 atoms.push(atom);
 scene.add(atom.geom);
 
+// add second atom in the system
+var tempVel2 = new Vector3D(-1, 0, 1);
+var tempAcc2 = new Vector3D(0, g, 0);
+var atom3 = newAtom(0.5, 1, tempVel2, tempAcc2);
+atoms.push(atom3);
+scene.add(atom3.geom);
+
 // add box
 var geometryBox = new THREE.BoxGeometry(10, 10, 10);
 var materialBox = new THREE.MeshNormalMaterial( {transparent: true, opacity: 0.1} );
@@ -37,9 +44,13 @@ clickOnCheckBox();
 
 var render = function () {
     requestAnimationFrame(render);
-
+    // loop over all atoms
     for(var i = 0; i < atoms.length; i++){
-       move(atoms[i], dt);
+        if (i != atoms.length - 1){
+            var detection = detectIntersection(atoms[i], atoms[i+1]);
+        }
+        move(atoms[i], dt);
+       console.log(detection);
     }
     scene3d.appendChild(renderer.domElement);
     renderer.render(scene, camera);
@@ -119,5 +130,40 @@ function newAtom(radii, mass, velocity, acceleration) {
     };
     return newAtom;
 }
+
+/**
+ * Detects intersection of two atoms
+ * @param atom1
+ * @param atom2
+ * @returns {if intersects [true, ort of r2 - r1] else [false, ort]}
+ */
+function detectIntersection(atom1, atom2){
+    var r1 = new Vector3D(atom1.geom.position.x, atom1.geom.position.y, atom1.geom.position.z);
+    var r2 = new Vector3D(atom2.geom.position.x, atom2.geom.position.y, atom2.geom.position.z);
+    var relDist = Vector3D.substract(r2, r1);
+    console.log(`relative distance between pair of balls ${relDist.length}`);
+    if (relDist.length <= 1 && relDist.length != 0){
+        changeDirectionAfterCollision(atom1, atom2, relDist);
+        return [true, Vector3D.normalize(relDist)];
+    } else if (relDist.length === 0) {
+        atom1.geom.position.x += 1;
+    } else{
+        return [false,  Vector3D.normalize(relDist)];
+    }
+}
+
+function changeDirectionAfterCollision(atom1, atom2, dr12){
+    // get central components of atoms velocities
+    var v112 = Vector3D.multiplyOnScalar(dr12, Vector3D.scalarProd(atom1.v, dr12));
+    var v212 = Vector3D.multiplyOnScalar(dr12, Vector3D.scalarProd(atom2.v, dr12));
+    // get normal to the central line components of velocities
+    var vn112 = Vector3D.cross(atom1.v, dr12);
+    var vn212 = Vector3D.cross(atom2.v, dr12);
+
+    // atoms changes longitudinal component of velocities
+    atom1.v = Vector3D.add(vn112, v212);
+    atom2.v = Vector3D.add(vn212, v112);
+}
+
 
 render();
