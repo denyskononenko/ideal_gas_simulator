@@ -9,6 +9,7 @@ var CANVAS_WIDTH = 700;
 var CANVAS_HEIGHT = 600;
 var LIM = 5;
 var gFlag = 0; // gravity on - off
+var TRESHOLD = 0.01; // treshold for minimum velocity near walls
 
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(50, 500 / 400, 0.1, 1000);
@@ -50,7 +51,7 @@ var render = function () {
             var detection = detectIntersection(atoms[i], atoms[i+1]);
         }
         move(atoms[i], dt);
-       console.log(detection);
+       console.log(atoms[i].v.y);
     }
     scene3d.appendChild(renderer.domElement);
     renderer.render(scene, camera);
@@ -141,12 +142,12 @@ function detectIntersection(atom1, atom2){
     var r1 = new Vector3D(atom1.geom.position.x, atom1.geom.position.y, atom1.geom.position.z);
     var r2 = new Vector3D(atom2.geom.position.x, atom2.geom.position.y, atom2.geom.position.z);
     var relDist = Vector3D.substract(r2, r1);
-    console.log(`relative distance between pair of balls ${relDist.length}`);
+    //console.log(`relative distance between pair of balls ${relDist.length}`);
     if (relDist.length <= 1 && relDist.length != 0){
         changeDirectionAfterCollision(atom1, atom2, relDist);
         return [true, Vector3D.normalize(relDist)];
     } else if (relDist.length === 0) {
-        atom1.geom.position.x += 1;
+        atom1.geom.position.x += 2;
     } else{
         return [false,  Vector3D.normalize(relDist)];
     }
@@ -161,8 +162,19 @@ function changeDirectionAfterCollision(atom1, atom2, dr12){
     var vn212 = Vector3D.cross(atom2.v, dr12);
 
     // atoms changes longitudinal component of velocities
-    atom1.v = Vector3D.add(vn112, v212);
-    atom2.v = Vector3D.add(vn212, v112);
+
+    if (atom1.v.length < TRESHOLD){
+        // case of one particle is static
+        atom1.v = new Vector3D(Math.random(), Math.random(), Math.random());
+        //atom2.v = atom1.v;
+    } else if (atom2.v.length < TRESHOLD){
+        // case of one particle is static
+        atom2.v = - new Vector3D(Math.random(), Math.random(), Math.random());
+    } else {
+        //case of both particles are non-static
+        atom1.v = Vector3D.add(vn112, v212);
+        atom2.v = Vector3D.add(vn212, v112);
+    }
 }
 
 
